@@ -2,16 +2,15 @@
 Bharat Vistaar MCP server (Python / FastMCP).
 
 Exposes all Vistaar agent tools over streamable HTTP for the bharat-oan-api Pydantic AI client.
-Run: uv run server.py  or  python server.py
+Run: python server.py
 """
 from __future__ import annotations
 
-import asyncio
 import contextvars
 import inspect
 import os
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, get_args, get_origin
 
 from dotenv import load_dotenv
 from mcp.server.fastmcp import Context, FastMCP
@@ -53,8 +52,6 @@ from vistaar_mcp.tools import (
 
 mcp = FastMCP("Bharat Vistaar MCP", host=os.getenv("MCP_HOST", "0.0.0.0"), port=int(os.getenv("MCP_PORT", "3001")))
 
-_farmer_deps: contextvars.ContextVar[FarmerContext] = contextvars.ContextVar("farmer_deps")
-
 
 class _RunCtx:
     """Minimal RunContext stand-in for tools that expect ctx.deps."""
@@ -86,22 +83,15 @@ def _farmer_from_meta(ctx: Context) -> FarmerContext:
     )
 
 
-def _set_farmer(ctx: Context) -> FarmerContext:
-    deps = _farmer_from_meta(ctx)
-    _farmer_deps.set(deps)
-    return deps
-
-
 async def _invoke(fn: Callable, ctx: Context, kwargs: dict[str, Any]) -> str:
-    deps = _set_farmer(ctx)
+    deps = _farmer_from_meta(ctx)
     run_ctx = _RunCtx(deps)
     params = list(inspect.signature(fn).parameters.keys())
     if params and params[0] == "ctx":
-        call_kwargs = kwargs
         if inspect.iscoroutinefunction(fn):
-            result = await fn(run_ctx, **call_kwargs)
+            result = await fn(run_ctx, **kwargs)
         else:
-            result = fn(run_ctx, **call_kwargs)
+            result = fn(run_ctx, **kwargs)
     else:
         if inspect.iscoroutinefunction(fn):
             result = await fn(**kwargs)
@@ -112,41 +102,77 @@ async def _invoke(fn: Callable, ctx: Context, kwargs: dict[str, Any]) -> str:
     return str(result)
 
 
-def _register_ctx_tool(fn: Callable) -> None:
-    @mcp.tool(name=fn.__name__, description=(fn.__doc__ or "").strip())
-    async def _handler(ctx: Context, **kwargs: Any) -> str:
-        return await _invoke(fn, ctx, kwargs)
-
-    _handler.__name__ = fn.__name__
-
-
-def _register_plain_tool(fn: Callable) -> None:
-    @mcp.tool(name=fn.__name__, description=(fn.__doc__ or "").strip())
-    async def _handler(ctx: Context, **kwargs: Any) -> str:
-        return await _invoke(fn, ctx, kwargs)
-
-    _handler.__name__ = fn.__name__
+def _schema_annotation(annotation: Any) -> Any:
+    """Types safe for FastMCP inspect.eval_str (avoid bare Literal)."""
+    if annotation is inspect.Parameter.empty:
+        return Any
+    origin = get_origin(annotation)
+    if origin is not None:
+        return str
+    if isinstance(annotation, type):
+        return annotation
+    return str
 
 
-_CTX_TOOLS = (
+def _format_exec_param(param: inspect.Parameter) -> str:
+    if param.default is inspect.Parameter.empty:
+        return param.name
+    return f"{param.name}={param.default!r}"
+
+
+def register_vistaar_tool(fn: Callable) -> None:
+    """Register tool with explicit parameters (no **kwargs) for valid OpenAI schemas."""
+    sig = inspect.signature(fn)
+    tool_params = [p for name, p in sig.parameters.items() if name != "ctx"]
+    if not tool_params:
+        args_code = ""
+        kwargs_map = ""
+    else:
+        args_code = ", ".join(_format_exec_param(p) for p in tool_params)
+        kwargs_map = ", ".join(f"{p.name!r}: {p.name}" for p in tool_params)
+
+    namespace: dict[str, Any] = {
+        "Context": Context,
+        "_invoke": _invoke,
+        "_target": fn,
+    }
+    if args_code:
+        src = (
+            f"async def __handler(ctx: Context, {args_code}):\n"
+            f"    return await _invoke(_target, ctx, {{{kwargs_map}}})\n"
+        )
+    else:
+        src = (
+            "async def __handler(ctx: Context):\n"
+            "    return await _invoke(_target, ctx, {})\n"
+        )
+    exec(src, namespace)
+    handler = namespace["__handler"]
+    handler.__name__ = fn.__name__
+    handler.__doc__ = (fn.__doc__ or "").strip()
+    handler.__annotations__ = {"ctx": Context, "return": str}
+    for name, ann in getattr(fn, "__annotations__", {}).items():
+        if name not in ("ctx", "return"):
+            handler.__annotations__[name] = _schema_annotation(ann)
+
+    mcp.tool(name=fn.__name__, description=handler.__doc__)(handler)
+
+
+ALL_TOOLS = (
+    get_scheme_info,
     initiate_pm_kisan_status_check,
     check_pm_kisan_status_with_otp,
     initiate_pmfby_status_check,
     check_pmfby_status_with_otp,
+    check_shc_status,
     pmkisan_grievance_send_otp,
+    check_smam_scheme_status,
     pmkisan_submit_grievance,
     pmkisan_grievance_status,
     initiate_pmfby_grievance_otp,
     check_pmfby_grievance_otp,
     pmfby_grievance_status,
     pmfby_submit_grievance,
-    analyze_crop_image,
-)
-
-_PLAIN_TOOLS = (
-    get_scheme_info,
-    check_shc_status,
-    check_smam_scheme_status,
     search_terms,
     search_documents,
     search_videos,
@@ -161,12 +187,11 @@ _PLAIN_TOOLS = (
     get_sathi_crop_groups,
     list_sathi_crops_in_group,
     search_sathi_seed_availability,
+    analyze_crop_image,
 )
 
-for _tool in _CTX_TOOLS:
-    _register_ctx_tool(_tool)
-for _tool in _PLAIN_TOOLS:
-    _register_plain_tool(_tool)
+for _tool in ALL_TOOLS:
+    register_vistaar_tool(_tool)
 
 
 if __name__ == "__main__":
