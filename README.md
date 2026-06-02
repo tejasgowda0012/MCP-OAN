@@ -30,6 +30,21 @@ MCP_API_KEY=
 MCP_TIMEOUT_SECONDS=120
 ```
 
+The API does **not** call MCP `tools/list` at runtime. It uses a shared manifest:
+
+| Repo | Path |
+|------|------|
+| MCP-OAN (canonical) | `shared/vistaar_tools_manifest.json` |
+| bharat-oan-api (copy) | `agents/data/vistaar_tools_manifest.json` |
+
+Regenerate after adding tools in `python/server.py`:
+
+```bash
+python/scripts/export_vistaar_tools_manifest.py
+# In bharat-oan-api (sibling checkout):
+./scripts/sync-vistaar-tools-manifest.sh
+```
+
 ## TypeScript server (optional / legacy)
 
 ```bash
