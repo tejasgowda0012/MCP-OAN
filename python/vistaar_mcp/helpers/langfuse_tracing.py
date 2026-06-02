@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Optional
 
-from helpers import langfuse_helper  # noqa: F401 — initializes Langfuse env before get_client()
+from vistaar_mcp.helpers import langfuse_helper  # noqa: F401 — initializes Langfuse env before get_client()
 from langfuse import get_client
 
 
