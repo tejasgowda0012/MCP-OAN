@@ -1,0 +1,39 @@
+curl --location 'https://seeker-client-vistaar.da.gov.in/search' \
+--header 'Content-Type: application/json' \
+--data '{
+    "context": {
+        "domain": "schemes:vistaar",
+        "action": "search",
+        "version": "1.1.0",
+        "bap_id": "seeker-network-vistaar.da.gov.in",
+        "bap_uri": "https://seeker-network-vistaar.da.gov.in",
+        "bpp_id": "provider-network-vistaar.da.gov.in",
+        "bpp_uri": "https://provider-network-vistaar.da.gov.in",
+        "transaction_id": "2cf7f26c-02f8-46e8-98d7-77ea23beef6e",
+        "message_id": "439fb407-16ab-46a9-a916-fde54f4859b9",
+        "timestamp": "1775556048",
+        "ttl": "PT10M",
+        "location": {
+            "country": {
+                "code": "IND"
+            },
+            "city": {
+                "code": "*"
+            }
+        }
+    },
+    "message": {
+        "intent": {
+            "category": {
+                "descriptor": {
+                    "code": "schemes-agri"
+                }
+            },
+            "item": {
+                "descriptor": {
+                    "name": "pmkisan"
+                }
+            }
+        }
+    }
+}'
