@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vistaar MCP Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0f172a;
+            --bg-surface: #1e293b;
+            --bg-surface-hover: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --success: #10b981;
+            --border: #334155;
+            --radius: 8px;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background-color: var(--bg-surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 0;
+        }
+        
+        .sidebar-brand {
+            font-size: 1.25rem;
+            font-weight: 700;
+            padding: 0 24px 24px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
+            color: var(--primary);
+            letter-spacing: 0.5px;
+        }
+
+        .nav-item {
+            padding: 12px 24px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-item:hover {
+            background-color: var(--bg-surface-hover);
+            color: var(--text-main);
+        }
+
+        .nav-item.active {
+            background-color: rgba(59, 130, 246, 0.1);
+            color: var(--primary);
+            border-right: 3px solid var(--primary);
+        }
+
+        /* Main Content */
+        .content {
+            flex: 1;
+            padding: 32px 48px;
+            overflow-y: auto;
+        }
+
+        .tab-pane {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Typography & Layout */
+        h1 { margin-top: 0; font-size: 1.8rem; font-weight: 600; }
+        h2 { font-size: 1.2rem; font-weight: 600; margin-bottom: 16px; }
+        
+        .header-action {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        /* Cards & Tables */
+        .card {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td { font-size: 0.95rem; }
+
+        /* Forms & Buttons */
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: var(--radius);
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .btn:hover { background-color: var(--primary-hover); }
+        
+        .btn-danger { background-color: var(--danger); }
+        .btn-danger:hover { background-color: var(--danger-hover); }
+        
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+        }
+        .btn-outline:hover { background-color: var(--bg-surface-hover); }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--bg-base);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text-main);
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Checkbox Grid */
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+            max-height: 50vh;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            background: var(--bg-base);
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        /* Badges */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .badge-success { background-color: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .badge-danger { background-color: rgba(239, 68, 68, 0.2); color: var(--danger); }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+        .modal {
+            background-color: var(--bg-surface);
+            padding: 32px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-large { max-width: 800px; }
+
+        .key-display {
+            background-color: #000;
+            padding: 16px;
+            border-radius: var(--radius);
+            font-family: monospace;
+            font-size: 1.1rem;
+            word-break: break-all;
+            margin: 20px 0;
+            border: 1px solid var(--primary);
+            color: var(--success);
+        }
+
+        /* Code Blocks */
+        pre {
+            background-color: #000;
+            padding: 20px;
+            border-radius: var(--radius);
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            font-size: 0.9rem;
+            color: #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-brand">Vistaar Admin</div>
+        <div class="nav-item active" onclick="switchTab('providers')">🏢 Providers</div>
+        <div class="nav-item" onclick="switchTab('roles')">🔐 Roles</div>
+        <div class="nav-item" onclick="switchTab('docs')">📚 Integration Docs</div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+        
+        <!-- Providers Tab -->
+        <div id="tab-providers" class="tab-pane active">
+            <div class="header-action">
+                <h1>Providers</h1>
+                <button class="btn" onclick="openProviderModal()">+ Add Provider</button>
+            </div>
+            
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="providers-tbody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Roles Tab -->
+        <div id="tab-roles" class="tab-pane">
+            <div class="header-action">
+                <h1>Roles</h1>
+                <button class="btn" onclick="openRoleModal()">+ Create Role</button>
+            </div>
+            
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Role Name</th>
+                            <th>Tools Allowed</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="roles-tbody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Docs Tab -->
+        <div id="tab-docs" class="tab-pane">
+            <h1>Integration Guide</h1>
+            <p style="color: var(--text-muted); margin-bottom: 30px;">Share this guide with external providers to help them connect to the MCP server.</p>
+            
+            <div class="card">
+                <h2>Python SDK</h2>
+                <pre><code>import asyncio
+from mcp import ClientSession
+from mcp.client.streamable_http import streamablehttp_client
+
+SERVER_URL = "http://your-server-ip:3001/mcp/"
+API_KEY = "YOUR_API_KEY"  # Replace with the key provided by admin
+
+async def main():
+    headers = {"Authorization": f"Bearer {API_KEY}"}
+    
+    async with streamablehttp_client(SERVER_URL, headers=headers) as (r, w, _):
+        async with ClientSession(r, w) as session:
+            await session.initialize()
+            
+            # Discover tools
+            tools = await session.list_tools()
+            for t in tools.tools:
+                print(f"  {t.name}")
+            
+            # Call tool
+            result = await session.call_tool("weather_forecast", {"location": "Pune"})
+            print(result)
+
+asyncio.run(main())</code></pre>
+            </div>
+
+            <div class="card">
+                <h2>Node.js SDK</h2>
+                <pre><code>import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+
+const transport = new StreamableHTTPClientTransport(
+  new URL("http://your-server-ip:3001/mcp/"),
+  { requestInit: { headers: { "Authorization": "Bearer YOUR_API_KEY" } } }
+);
+
+const client = new Client({ name: "my-app", version: "1.0.0" });
+await client.connect(transport);
+
+const { tools } = await client.listTools();
+console.log("Tools:", tools.map(t => t.name));
+
+const result = await client.callTool({ name: "weather_forecast", arguments: { location: "Pune" } });
+console.log(result);</code></pre>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Provider Modal -->
+    <div id="provider-modal" class="modal-overlay">
+        <div class="modal">
+            <h2 style="margin-top:0">Add New Provider</h2>
+            <div class="form-group">
+                <label>Provider Name</label>
+                <input type="text" id="provider-name" class="form-control" placeholder="e.g. Acme Corp">
+            </div>
+            <div class="form-group">
+                <label>Assign Role</label>
+                <select id="provider-role" class="form-control"></select>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 30px;">
+                <button class="btn btn-outline" onclick="closeModals()">Cancel</button>
+                <button class="btn" onclick="submitProvider()">Create & Generate Key</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Role Modal -->
+    <div id="role-modal" class="modal-overlay">
+        <div class="modal modal-large">
+            <h2 style="margin-top:0">Create / Edit Role</h2>
+            <div class="form-group">
+                <label>Role Name (No spaces)</label>
+                <input type="text" id="role-name" class="form-control" placeholder="e.g. weather_only">
+            </div>
+            <div class="form-group">
+                <label>Select Tools</label>
+                <div class="checkbox-grid" id="role-tools-grid">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 30px;">
+                <button class="btn btn-outline" onclick="closeModals()">Cancel</button>
+                <button class="btn" onclick="submitRole()">Save Role</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Key Display Modal -->
+    <div id="key-modal" class="modal-overlay">
+        <div class="modal">
+            <h2 style="margin-top:0; color: var(--success)">API Key Generated!</h2>
+            <p>Please copy this key now. <b>It will not be shown again.</b></p>
+            <div class="key-display" id="generated-key"></div>
+            <button class="btn" style="width: 100%" onclick="closeModals()">I have copied the key</button>
+        </div>
+    </div>
+
+    <script>
+        let allTools = [];
+        let allRoles = [];
+
+        // Tab Switching
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById('tab-' + tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+
+            if(tabId === 'providers') loadProviders();
+            if(tabId === 'roles') loadRoles();
+        }
+
+        // Modals
+        function closeModals() {
+            document.querySelectorAll('.modal-overlay').forEach(el => el.style.display = 'none');
+        }
+
+        async function openProviderModal() {
+            document.getElementById('provider-name').value = '';
+            
+            // Populate roles dropdown
+            const select = document.getElementById('provider-role');
+            select.innerHTML = allRoles.map(r => `<option value="${r.name}">${r.name}</option>`).join('');
+            
+            document.getElementById('provider-modal').style.display = 'flex';
+        }
+
+        async function openRoleModal(roleName = '') {
+            document.getElementById('role-name').value = roleName;
+            document.getElementById('role-name').disabled = !!roleName; // Disable editing name if updating
+            
+            let checkedTools = [];
+            if(roleName) {
+                const role = allRoles.find(r => r.name === roleName);
+                if(role) checkedTools = role.tools;
+            }
+
+            const grid = document.getElementById('role-tools-grid');
+            grid.innerHTML = allTools.map(t => `
+                <label class="checkbox-item">
+                    <input type="checkbox" value="${t.name}" ${checkedTools.includes(t.name) ? 'checked' : ''}>
+                    ${t.name}
+                </label>
+            `).join('');
+
+            document.getElementById('role-modal').style.display = 'flex';
+        }
+
+        // Data Fetching
+        async function fetchAPI(url, options = {}) {
+            try {
+                const res = await fetch(url, options);
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'API Error');
+                return data;
+            } catch (err) {
+                alert("Error: " + err.message);
+                throw err;
+            }
+        }
+
+        async function init() {
+            allTools = await fetchAPI('/api/tools');
+            loadRoles();
+            loadProviders();
+        }
+
+        async function loadRoles() {
+            allRoles = await fetchAPI('/api/roles');
+            const tbody = document.getElementById('roles-tbody');
+            tbody.innerHTML = allRoles.map(r => `
+                <tr>
+                    <td><strong>${r.name}</strong></td>
+                    <td>${r.tools.length} tools allowed</td>
+                    <td>
+                        <button class="btn btn-outline" style="padding: 6px 12px" onclick="openRoleModal('${r.name}')">Edit</button>
+                        ${r.name !== 'internal' ? `<button class="btn btn-danger" style="padding: 6px 12px" onclick="deleteRole('${r.name}')">Delete</button>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadProviders() {
+            const providers = await fetchAPI('/api/providers');
+            const tbody = document.getElementById('providers-tbody');
+            tbody.innerHTML = providers.map(p => `
+                <tr>
+                    <td><strong>${p.name}</strong><br><small style="color:var(--text-muted)">${p.id}</small></td>
+                    <td><span class="badge" style="background:#334155">${p.role}</span></td>
+                    <td><span class="badge ${p.active ? 'badge-success' : 'badge-danger'}">${p.active ? 'Active' : 'Inactive'}</span></td>
+                    <td>${new Date(p.created_at).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn btn-outline" style="padding: 6px 12px" onclick="toggleProvider('${p.id}', ${!p.active})">
+                            ${p.active ? 'Deactivate' : 'Activate'}
+                        </button>
+                        <button class="btn btn-outline" style="padding: 6px 12px; margin-left:5px" onclick="regenerateKey('${p.id}')">Regenerate Key</button>
+                        <button class="btn btn-danger" style="padding: 6px 12px; margin-left:5px" onclick="deleteProvider('${p.id}')">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Actions
+        async function submitRole() {
+            const name = document.getElementById('role-name').value.trim();
+            const checked = Array.from(document.querySelectorAll('#role-tools-grid input:checked')).map(cb => cb.value);
+            
+            if(!name || checked.length === 0) return alert("Enter name and select at least 1 tool.");
+
+            const isUpdate = document.getElementById('role-name').disabled;
+            await fetchAPI(`/api/roles${isUpdate ? '/'+name : ''}`, {
+                method: isUpdate ? 'PUT' : 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ name, tools: checked })
+            });
+            
+            closeModals();
+            loadRoles();
+        }
+
+        async function deleteRole(name) {
+            if(!confirm(`Delete role ${name}?`)) return;
+            await fetchAPI(`/api/roles/${name}`, { method: 'DELETE' });
+            loadRoles();
+        }
+
+        async function submitProvider() {
+            const name = document.getElementById('provider-name').value.trim();
+            const role = document.getElementById('provider-role').value;
+            
+            if(!name || !role) return alert("Fill all fields.");
+
+            const res = await fetchAPI('/api/providers', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ name, role })
+            });
+            
+            closeModals();
+            loadProviders();
+            
+            // Show one-time key
+            document.getElementById('generated-key').innerText = res.api_key;
+            document.getElementById('key-modal').style.display = 'flex';
+        }
+
+        async function toggleProvider(id, active) {
+            await fetchAPI(`/api/providers/${id}`, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ active })
+            });
+            loadProviders();
+        }
+
+        async function deleteProvider(id) {
+            if(!confirm(`Permanently delete provider ${id}?`)) return;
+            await fetchAPI(`/api/providers/${id}`, { method: 'DELETE' });
+            loadProviders();
+        }
+
+        async function regenerateKey(id) {
+            if(!confirm(`Regenerate key for ${id}? The old key will immediately stop working.`)) return;
+            const res = await fetchAPI(`/api/providers/${id}/regenerate`, { method: 'POST' });
+            
+            document.getElementById('generated-key').innerText = res.api_key;
+            document.getElementById('key-modal').style.display = 'flex';
+        }
+
+        // Boot
+        init();
+    </script>
+</body>
+</html>

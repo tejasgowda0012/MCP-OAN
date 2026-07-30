@@ -21,6 +21,7 @@ load_dotenv(Path(__file__).resolve().parent / ".env")
 logger = logging.getLogger(__name__)
 
 from vistaar_mcp.deps import FarmerContext
+from vistaar_mcp.authz.provider_registry import registry
 from vistaar_mcp.tools import (
     analyze_crop_image,
     check_pmfby_grievance_otp,
@@ -76,8 +77,16 @@ def _farmer_from_meta(ctx: Context) -> FarmerContext:
             elif not isinstance(raw, dict):
                 raw = dict(raw) if raw else {}
     session_id = raw.get("session_id") or "mcp-anonymous"
-    harness = raw.get("harness", "unknown")
     user_id = raw.get("user_id")
+    
+    # Securely read harness from server-injected state, ignore client metadata
+    harness = "unknown"
+    if ctx.request_context:
+        if hasattr(ctx.request_context, "state"):
+            harness = getattr(ctx.request_context.state, "harness", "unknown")
+        elif hasattr(ctx.request_context, "request"):
+            harness = getattr(ctx.request_context.request.state, "harness", "unknown")
+            
     logger.info(f"MCP received context — harness={harness}, user_id={user_id}, session_id={session_id}")
     print(f"MCP RECEIVED CONTEXT — harness={harness}, user_id={user_id}, session_id={session_id} 🚨", flush=True)
     return FarmerContext(
@@ -211,34 +220,31 @@ if __name__ == "__main__":
         from starlette.middleware.base import BaseHTTPMiddleware
         from starlette.responses import JSONResponse
         
-        class APIKeyAuthMiddleware(BaseHTTPMiddleware):
-            def __init__(self, app, api_key: str):
-                super().__init__(app)
-                self.api_key = api_key
-    
+        class ProviderAuthMiddleware(BaseHTTPMiddleware):
             async def dispatch(self, request, call_next):
                 auth_header = request.headers.get("Authorization")
                 x_api_key = request.headers.get("x-api-key")
                 
-                valid = False
+                api_key = None
                 if auth_header and auth_header.startswith("Bearer "):
-                    if auth_header.split(" ")[1] == self.api_key:
-                        valid = True
-                elif x_api_key == self.api_key:
-                    valid = True
+                    api_key = auth_header.split(" ")[1]
+                elif x_api_key:
+                    api_key = x_api_key
                     
-                if not valid:
-                    return JSONResponse({"error": "Unauthorized: Invalid API Key"}, status_code=401)
+                provider = registry.lookup_by_api_key(api_key) if api_key else None
+                
+                if not provider:
+                    return JSONResponse({"error": "Unauthorized: Invalid or deactivated API Key"}, status_code=401)
                     
+                # Inject role into request state
+                request.state.harness = provider["role"]
+                request.state.provider_id = provider["id"]
+                
                 return await call_next(request)
 
         starlette_app = mcp.streamable_http_app()
-        api_key = os.getenv("MCP_API_KEY")
-        if api_key:
-            logger.info("Securing MCP server with API key authentication.")
-            starlette_app.add_middleware(APIKeyAuthMiddleware, api_key=api_key)
-        else:
-            logger.warning("MCP_API_KEY not set. Server is running without authentication!")
+        logger.info("Securing MCP server with SQLite provider authentication.")
+        starlette_app.add_middleware(ProviderAuthMiddleware)
 
         uvicorn.run(starlette_app, host=mcp.settings.host, port=mcp.settings.port)
     else:

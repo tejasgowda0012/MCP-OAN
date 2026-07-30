@@ -1,0 +1,17 @@
+services:
+  mcp-server:
+    container_name: mcp-oan-standalone
+    build: .
+    ports:
+      - "3001:3001"
+      - "127.0.0.1:3002:3002"
+    volumes:
+      - ./python/vistaar_mcp/authz:/app/vistaar_mcp/authz
+    environment:
+      MCP_HOST: 0.0.0.0
+      MCP_PORT: 3001
+      MCP_TRANSPORT: streamable-http
+      ADMIN_PORT: 3002
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme}
+    restart: unless-stopped

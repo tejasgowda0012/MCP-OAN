@@ -10,3 +10,6 @@ python/**/*.pyc
 python/.oan-uploads/
 .DS_Store
 .claude/
+*.db
+*.db-wal
+*.db-shm
