@@ -1,3 +1,4 @@
+from vistaar_mcp.rbac import enforce_policy
 """
 Weather tool for fetching weather forecast data using the IMD API.
 """
@@ -354,7 +355,8 @@ class WeatherRequest(BaseModel):
 
 
 @observe(name="tool:weather_forecast", as_type="tool")
-async def weather_forecast(latitude: float, longitude: float) -> str:
+@enforce_policy()
+async def weather_forecast(ctx, latitude: float, longitude: float) -> str:
     """Get Weather forecast for a specific location.
 
     Args:

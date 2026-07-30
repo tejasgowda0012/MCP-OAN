@@ -1,3 +1,4 @@
+from vistaar_mcp.rbac import enforce_policy
 """
 Maps tool for geocoding using Photon.
 """
@@ -87,7 +88,8 @@ def _feature_to_location(feature: dict, fallback_name: str = None) -> Location:
 
 
 @observe(name="tool:forward_geocode", as_type="tool")
-async def forward_geocode(place_name: str) -> str:
+@enforce_policy()
+async def forward_geocode(ctx, place_name: str) -> str:
     """Forward Geocoding to get latitude and longitude from a place name in India.
 
     Args:
@@ -143,7 +145,8 @@ async def forward_geocode(place_name: str) -> str:
 
 
 @observe(name="tool:reverse_geocode", as_type="tool")
-async def reverse_geocode(latitude: float, longitude: float) -> Optional[Location]:
+@enforce_policy()
+async def reverse_geocode(ctx, latitude: float, longitude: float) -> Optional[Location]:
     """Reverse Geocoding to get place name from latitude and longitude.
 
     Args:

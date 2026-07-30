@@ -4,6 +4,7 @@ from enum import Enum
 from pydantic import BaseModel, Field
 from rapidfuzz import fuzz, process
 from langfuse import observe
+from vistaar_mcp.rbac import enforce_policy
 from vistaar_mcp.paths import ASSETS_DIR
 
 # Load term pairs from JSON file with UTF-8 encoding
@@ -59,10 +60,12 @@ TERM_PAIRS = [TermPair(**pair) for pair in term_pairs]
 
 
 @observe(name="tool:search_terms", as_type="tool")
+@enforce_policy()
 async def search_terms(
+    ctx,
     term: str,
-    max_results: int = 5,
-    threshold: float = 0.7,
+    max_results: int | str = 5,
+    threshold: float | str = 0.7,
     language: Language | None = None,
 ) -> str:
     """Search for terms using fuzzy partial string matching across all fields.
@@ -76,6 +79,9 @@ async def search_terms(
     Returns:
         str: Formatted string with matching results and their scores
     """
+    max_results = int(max_results)
+    threshold = float(threshold)
+    
     if not 0 <= threshold <= 1:
         raise ValueError("threshold must be between 0 and 1")
 

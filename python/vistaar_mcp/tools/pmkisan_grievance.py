@@ -1,9 +1,10 @@
+from __future__ import annotations
 """
 PM-KISAN Grievance Tools (pmkisan_submit_grievance, pmkisan_grievance_status)
 
 """
 
-from __future__ import annotations
+from vistaar_mcp.rbac import enforce_policy
 
 import json
 import os
@@ -639,8 +640,8 @@ class GrievanceInitRequest(BaseModel):
 # --------------------------------------------------------------------------------------
 
 @observe(name="tool:pmkisan_grievance_send_otp", as_type="tool")
-async def pmkisan_grievance_send_otp(
-    ctx: RunContext[FarmerContext],
+@enforce_policy()
+async def pmkisan_grievance_send_otp(ctx: RunContext[FarmerContext],
     reg_no: str,
     phone_number: str = "",
     purpose: Literal["submit_grievance", "check_status"] = "submit_grievance",
@@ -680,8 +681,8 @@ async def pmkisan_grievance_send_otp(
 
 
 @observe(name="tool:pmkisan_submit_grievance", as_type="tool")
-async def pmkisan_submit_grievance(
-    ctx: RunContext[FarmerContext],
+@enforce_policy()
+async def pmkisan_submit_grievance(ctx: RunContext[FarmerContext],
     reg_no: str,
     grievance_description: str,
     grievance_type: str,
@@ -790,8 +791,8 @@ async def pmkisan_submit_grievance(
 
 
 @observe(name="tool:pmkisan_grievance_status", as_type="tool")
-async def pmkisan_grievance_status(
-    ctx: RunContext[FarmerContext],
+@enforce_policy()
+async def pmkisan_grievance_status(ctx: RunContext[FarmerContext],
     reg_no: str = "",
     raw: bool = False,
     aadhaar_no: Optional[str] = None,

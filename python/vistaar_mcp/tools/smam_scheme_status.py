@@ -1,6 +1,7 @@
+from __future__ import annotations
 """SMAM (Sub-Mission on Agricultural Mechanization) beneficiary application status via BAP /search."""
 
-from __future__ import annotations
+from vistaar_mcp.rbac import enforce_policy
 
 import json
 import os
@@ -258,7 +259,8 @@ def _normalize_search_value(search_type: SmamSearchType, raw: str) -> str:
 
 
 @observe(name="tool:check_smam_scheme_status", as_type="tool")
-async def check_smam_scheme_status(
+@enforce_policy()
+async def check_smam_scheme_status(ctx, 
     search_type: SmamSearchType,
     search_value: str,
 ) -> str:

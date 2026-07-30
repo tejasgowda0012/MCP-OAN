@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import contextvars
 import inspect
+import logging
 import os
 from pathlib import Path
 from typing import Any, Callable, get_args, get_origin
@@ -16,6 +17,8 @@ from dotenv import load_dotenv
 from mcp.server.fastmcp import Context, FastMCP
 
 load_dotenv(Path(__file__).resolve().parent / ".env")
+
+logger = logging.getLogger(__name__)
 
 from vistaar_mcp.deps import FarmerContext
 from vistaar_mcp.tools import (
@@ -73,6 +76,10 @@ def _farmer_from_meta(ctx: Context) -> FarmerContext:
             elif not isinstance(raw, dict):
                 raw = dict(raw) if raw else {}
     session_id = raw.get("session_id") or "mcp-anonymous"
+    harness = raw.get("harness", "unknown")
+    user_id = raw.get("user_id")
+    logger.info(f"MCP received context — harness={harness}, user_id={user_id}, session_id={session_id}")
+    print(f"MCP RECEIVED CONTEXT — harness={harness}, user_id={user_id}, session_id={session_id} 🚨", flush=True)
     return FarmerContext(
         query=raw.get("query", ""),
         lang_code=raw.get("lang_code", "hi"),
@@ -80,6 +87,8 @@ def _farmer_from_meta(ctx: Context) -> FarmerContext:
         moderation_str=raw.get("moderation_str"),
         latitude=raw.get("latitude"),
         longitude=raw.get("longitude"),
+        harness=harness,
+        user_id=user_id,
     )
 
 
@@ -196,4 +205,41 @@ for _tool in ALL_TOOLS:
 
 if __name__ == "__main__":
     transport = os.getenv("MCP_TRANSPORT", "streamable-http")
-    mcp.run(transport=transport)
+    
+    if transport == "streamable-http":
+        import uvicorn
+        from starlette.middleware.base import BaseHTTPMiddleware
+        from starlette.responses import JSONResponse
+        
+        class APIKeyAuthMiddleware(BaseHTTPMiddleware):
+            def __init__(self, app, api_key: str):
+                super().__init__(app)
+                self.api_key = api_key
+    
+            async def dispatch(self, request, call_next):
+                auth_header = request.headers.get("Authorization")
+                x_api_key = request.headers.get("x-api-key")
+                
+                valid = False
+                if auth_header and auth_header.startswith("Bearer "):
+                    if auth_header.split(" ")[1] == self.api_key:
+                        valid = True
+                elif x_api_key == self.api_key:
+                    valid = True
+                    
+                if not valid:
+                    return JSONResponse({"error": "Unauthorized: Invalid API Key"}, status_code=401)
+                    
+                return await call_next(request)
+
+        starlette_app = mcp.streamable_http_app()
+        api_key = os.getenv("MCP_API_KEY")
+        if api_key:
+            logger.info("Securing MCP server with API key authentication.")
+            starlette_app.add_middleware(APIKeyAuthMiddleware, api_key=api_key)
+        else:
+            logger.warning("MCP_API_KEY not set. Server is running without authentication!")
+
+        uvicorn.run(starlette_app, host=mcp.settings.host, port=mcp.settings.port)
+    else:
+        mcp.run(transport=transport)

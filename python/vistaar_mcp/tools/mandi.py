@@ -1,3 +1,4 @@
+from vistaar_mcp.rbac import enforce_policy
 """
 Mandi price discovery tool for fetching commodity prices from nearby mandis
 using the Vistaar Beckn API.
@@ -389,7 +390,8 @@ class MandiRequest(BaseModel):
 
 
 @observe(name="tool:get_mandi_prices", as_type="tool")
-async def get_mandi_prices(
+@enforce_policy()
+async def get_mandi_prices(ctx, 
     latitude: float,
     longitude: float,
     commodity_code: int,

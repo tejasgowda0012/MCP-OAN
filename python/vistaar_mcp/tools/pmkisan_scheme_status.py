@@ -1,3 +1,4 @@
+from vistaar_mcp.rbac import enforce_policy
 import uuid
 import json
 from datetime import datetime, timezone
@@ -443,6 +444,7 @@ class SchemeStatusRequest(BaseModel):
 # -----------------------
 
 @observe(name="tool:initiate_pm_kisan_status_check", as_type="tool")
+@enforce_policy()
 def initiate_pm_kisan_status_check(ctx: RunContext[FarmerContext], reg_no: str) -> str:
     """Initiate PM Kisan status check by sending OTP to farmer's mobile.
     
@@ -513,6 +515,7 @@ def initiate_pm_kisan_status_check(ctx: RunContext[FarmerContext], reg_no: str) 
 
 
 @observe(name="tool:check_pm_kisan_status_with_otp", as_type="tool")
+@enforce_policy()
 def check_pm_kisan_status_with_otp(ctx: RunContext[FarmerContext], otp: str, reg_no: str) -> str:
     """Check PM Kisan status using OTP after initiating the OTP check.
      

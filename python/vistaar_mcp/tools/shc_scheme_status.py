@@ -1,3 +1,4 @@
+from vistaar_mcp.rbac import enforce_policy
 import os
 import re
 import uuid
@@ -542,7 +543,8 @@ async def cache_html_and_replace_urls(response_data: SHCStatusResponse, phone_nu
 # -----------------------
 
 @observe(name="tool:check_shc_status", as_type="tool")
-async def check_shc_status(
+@enforce_policy()
+async def check_shc_status(ctx, 
     phone_number: str,
     cycle: str
 ) -> str:

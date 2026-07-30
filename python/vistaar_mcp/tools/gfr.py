@@ -1,4 +1,5 @@
 from __future__ import annotations
+from vistaar_mcp.rbac import enforce_policy
 """
 GFR (Government Fertilizer Recommendation) tool for crop registry and fertilizer advice
 using the Vistaar Beckn API.
@@ -554,7 +555,8 @@ class GfrRecommendationItem(BaseModel):
 
 
 @observe(name="tool:gfr_get_crop_registries", as_type="tool")
-def gfr_get_crop_registries(
+@enforce_policy()
+def gfr_get_crop_registries(ctx, 
     latitude: float,
     longitude: float,
     only_gfr_available: bool = True,
@@ -647,7 +649,8 @@ def gfr_get_crop_registries(
 
 
 @observe(name="tool:gfr_get_recommendations", as_type="tool")
-def gfr_get_recommendations(
+@enforce_policy()
+def gfr_get_recommendations(ctx, 
     state_id: str,
     crops: List[str],
     phone_no: str,

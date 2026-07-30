@@ -26,6 +26,8 @@ class FarmerContext(BaseModel):
     moderation_str: Optional[str] = Field(default=None, description="The moderation result of the user's question.")
     latitude: Optional[float] = Field(default=None, description="User's latitude for geocoding.")
     longitude: Optional[float] = Field(default=None, description="User's longitude for geocoding.")
+    harness: str = Field(default="unknown", description="The harness calling the tool (e.g., 'chat', 'voice').")
+    user_id: Optional[str] = Field(default=None, description="User identifier (e.g. mobile number) from JWT.")
     npss_used: bool = Field(default=False, description="Whether NPSS image analysis was used in this turn.")
     npss_source_name: Optional[str] = Field(default=None, description="Official NPSS source name.")
     npss_source_owner: Optional[str] = Field(default=None, description="Official NPSS source owner.")

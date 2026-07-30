@@ -1,3 +1,4 @@
+from vistaar_mcp.rbac import enforce_policy
 import uuid
 import json
 from datetime import datetime, timezone
@@ -471,6 +472,7 @@ class PMfbyStatusWithOtpRequest(BaseModel):
 
 
 @observe(name="tool:initiate_pmfby_status_check", as_type="tool")
+@enforce_policy()
 def initiate_pmfby_status_check(ctx: RunContext[FarmerContext], phone_number: str) -> str:
     """Initiate PMFBY status check by sending OTP to farmer's mobile.
     
@@ -541,8 +543,8 @@ def initiate_pmfby_status_check(ctx: RunContext[FarmerContext], phone_number: st
 
 
 @observe(name="tool:check_pmfby_status_with_otp", as_type="tool")
-def check_pmfby_status_with_otp(
-    ctx: RunContext[FarmerContext],
+@enforce_policy()
+def check_pmfby_status_with_otp(ctx: RunContext[FarmerContext],
     otp: str,
     phone_number: str,
     inquiry_type: Literal["policy_status", "claim_status"],

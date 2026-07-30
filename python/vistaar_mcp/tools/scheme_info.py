@@ -1,3 +1,4 @@
+from vistaar_mcp.rbac import enforce_policy
 import uuid
 from datetime import datetime, timezone
 from vistaar_mcp.helpers.utils import get_logger
@@ -270,7 +271,8 @@ class SchemeRequest(BaseModel):
 
 
 @observe(name="tool:get_scheme_info", as_type="tool")
-def get_scheme_info(scheme_name: Literal["kcc", "pmkisan", "pmfby", "shc", "pmksy", "sathi", "pmasha", "aif", "smam", "pdmc", "pkvy", "nfsm", "rad"]) -> str:
+@enforce_policy()
+def get_scheme_info(ctx, scheme_name: Literal["kcc", "pmkisan", "pmfby", "shc", "pmksy", "sathi", "pmasha", "aif", "smam", "pdmc", "pkvy", "nfsm", "rad"]) -> str:
     """Retrieve detailed information about government agricultural schemes.
     
     This tool fetches comprehensive scheme data including benefits, eligibility criteria, 

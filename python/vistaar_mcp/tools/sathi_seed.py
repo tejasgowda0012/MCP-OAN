@@ -1,4 +1,5 @@
 from __future__ import annotations
+from vistaar_mcp.rbac import enforce_policy
 
 import json
 import os
@@ -445,7 +446,8 @@ async def _http_get_json(url: str, params: dict[str, Any] | None = None) -> dict
 
 
 @observe(name="tool:get_sathi_crop_groups", as_type="tool")
-async def get_sathi_crop_groups() -> str:
+@enforce_policy()
+async def get_sathi_crop_groups(ctx, ) -> str:
     """Official SATHI crop groups (group_code, group_name); use group_code with list_sathi_crops_in_group."""
     try:
         cached = await cache.get(CROP_GROUPS_CACHE_KEY, namespace=SATHI_CACHE_NS)
@@ -475,7 +477,8 @@ async def get_sathi_crop_groups() -> str:
 
 
 @observe(name="tool:list_sathi_crops_in_group", as_type="tool")
-async def list_sathi_crops_in_group(group_code: str) -> str:
+@enforce_policy()
+async def list_sathi_crops_in_group(ctx, group_code: str) -> str:
     """Crops in a SATHI group; pick crop_code for search_sathi_seed_availability."""
     gc = (group_code or "").strip().upper()
     if not gc:
@@ -552,7 +555,8 @@ def _build_beckn_seed_search_payload(
 
 
 @observe(name="tool:search_sathi_seed_availability", as_type="tool")
-async def search_sathi_seed_availability(
+@enforce_policy()
+async def search_sathi_seed_availability(ctx, 
     crop_code: str,
     latitude: float,
     longitude: float,

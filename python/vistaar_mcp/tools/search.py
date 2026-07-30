@@ -1,3 +1,4 @@
+from vistaar_mcp.rbac import enforce_policy
 """
 Marqo client implementation for vector search.
 """
@@ -42,9 +43,10 @@ class SearchHit(BaseModel):
 
 
 @observe(name="tool:search_documents", as_type="tool")
-async def search_documents(
+@enforce_policy()
+async def search_documents(ctx, 
     query: str, 
-    top_k: int = 10, 
+    top_k: int | str = 10, 
 ) -> str:
     """
     Semantic search for documents. Use this tool to search for relevant documents.
@@ -54,8 +56,9 @@ async def search_documents(
         top_k: Maximum number of results to return (default: 10)
         
     Returns:
-        search_results: Formatted list of documents
+        str: Formatted list of documents
     """
+    top_k = int(top_k)
     try:
         # Initialize Marqo client
         endpoint_url = os.getenv('MARQO_ENDPOINT_URL')
@@ -102,20 +105,23 @@ async def search_documents(
 
 
 @observe(name="tool:search_videos", as_type="tool")
-async def search_videos(
+@enforce_policy()
+async def search_videos(ctx, 
     query: str, 
-    top_k: int = 3, 
+    top_k: int | str = 3, 
 ) -> str:
     """
-    Semantic search for videos. Use this tool when recommending videos to the farmer.
+    Search for agricultural videos.
+    Use this to find videos related to farming practices, crop management, etc.
     
     Args:
         query: The search query in *English* (required)
         top_k: Maximum number of results to return (default: 3)
         
     Returns:
-        search_results: Formatted list of videos
+        str: Formatted string with matching videos or an error message
     """
+    top_k = int(top_k)
     try:
         # Initialize Marqo client
         endpoint_url = os.getenv('MARQO_ENDPOINT_URL')
@@ -154,9 +160,10 @@ async def search_videos(
 
 
 @observe(name="tool:search_pests_diseases", as_type="tool")
-async def search_pests_diseases(
+@enforce_policy()
+async def search_pests_diseases(ctx, 
     query: str, 
-    top_k: int = 10, 
+    top_k: int | str = 10, 
 ) -> str:
     """
     Semantic search for **crop** pests and diseases only (e.g. crop insects, fungal/bacterial diseases of plants).
@@ -167,8 +174,9 @@ async def search_pests_diseases(
         top_k: Maximum number of results to return (default: 10)
         
     Returns:
-        search_results: Formatted list of pests and diseases information
+        str: Formatted string with matching documents or an error message
     """
+    top_k = int(top_k)
     try:
         # Initialize Marqo client
         endpoint_url = os.getenv('MARQO_ENDPOINT_URL')

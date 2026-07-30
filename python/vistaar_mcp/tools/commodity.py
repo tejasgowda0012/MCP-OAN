@@ -1,3 +1,4 @@
+from vistaar_mcp.rbac import enforce_policy
 import json
 from pydantic import BaseModel, Field
 from rapidfuzz import fuzz
@@ -36,7 +37,8 @@ COMMODITY_ENTRIES: list[CommodityEntry] = [CommodityEntry(**e) for e in _raw]
 
 
 @observe(name="tool:search_commodity", as_type="tool")
-async def search_commodity(
+@enforce_policy()
+async def search_commodity(ctx, 
     query: str,
     max_results: int = 5,
     threshold: float = 0.7,

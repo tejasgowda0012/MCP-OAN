@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 PMFBY Grievance Tool for lodging a grievance through the PMFBY scheme.
 
@@ -5,7 +6,7 @@ Implements the Beckn BAP `/init` flow for provider `pmfby-grievance` using the s
 transaction-id + OTP validation conventions as the PMFBY scheme status tools.
 """
 
-from __future__ import annotations
+from vistaar_mcp.rbac import enforce_policy
 
 import json
 import os
@@ -376,6 +377,7 @@ class InitResponse(BaseModel):
 
 
 @observe(name="tool:initiate_pmfby_grievance_otp", as_type="tool")
+@enforce_policy()
 def initiate_pmfby_grievance_otp(ctx: RunContext[FarmerContext], phone_number: str) -> str:
     """Send OTP to the farmer's registered mobile for PMFBY grievance (`get_otp` /init)."""
     try:
@@ -402,8 +404,8 @@ def initiate_pmfby_grievance_otp(ctx: RunContext[FarmerContext], phone_number: s
 
 
 @observe(name="tool:check_pmfby_grievance_otp", as_type="tool")
-def check_pmfby_grievance_otp(
-    ctx: RunContext[FarmerContext],
+@enforce_policy()
+def check_pmfby_grievance_otp(ctx: RunContext[FarmerContext],
     otp: str,
     phone_number: str,
 ) -> str:
@@ -437,8 +439,8 @@ def check_pmfby_grievance_otp(
 
 
 @observe(name="tool:pmfby_grievance_status", as_type="tool")
-def pmfby_grievance_status(
-    ctx: RunContext[FarmerContext],
+@enforce_policy()
+def pmfby_grievance_status(ctx: RunContext[FarmerContext],
     phone_number: str,
     grievance_support_ticket_no: str,
 ) -> str:
@@ -503,8 +505,8 @@ def pmfby_grievance_status(
 
 
 @observe(name="tool:pmfby_submit_grievance", as_type="tool")
-def pmfby_submit_grievance(
-    ctx: RunContext[FarmerContext],
+@enforce_policy()
+def pmfby_submit_grievance(ctx: RunContext[FarmerContext],
     otp: str,
     phone_number: str,
     receipt_source_id: str,

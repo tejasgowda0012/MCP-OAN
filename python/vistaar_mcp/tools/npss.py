@@ -1,3 +1,4 @@
+from vistaar_mcp.rbac import enforce_policy
 """
 NPSS (National Pest Surveillance System) image analysis tool.
 
@@ -279,8 +280,8 @@ def _extract_image_id_from_url(image_url: str) -> Optional[str]:
 # ---------------------------------------------------------------------------
 
 @observe(name="tool:analyze_crop_image", as_type="tool")
-async def analyze_crop_image(
-    ctx: RunContext[FarmerContext],
+@enforce_policy()
+async def analyze_crop_image(ctx: RunContext[FarmerContext],
     image_url: str,
     latitude: Optional[float] = None,
     longitude: Optional[float] = None,
