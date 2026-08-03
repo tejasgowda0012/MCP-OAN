@@ -45,9 +45,9 @@ let allTools = [];
 
             const grid = document.getElementById('role-tools-grid');
             grid.innerHTML = allTools.map(t => `
-                <label class="checkbox-item">
+                <label class="checkbox-item" title="${t.name}">
                     <input type="checkbox" value="${t.name}" ${checkedTools.includes(t.name) ? 'checked' : ''}>
-                    ${t.name}
+                    <span class="checkbox-text">${t.name}</span>
                 </label>
             `).join('');
 
@@ -196,3 +196,31 @@ let allTools = [];
 
         // Boot
         init();
+
+        // Search Functionality
+        document.getElementById('provider-search').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#providers-tbody tr');
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(term) ? '' : 'none';
+            });
+        });
+
+        document.getElementById('role-search').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#roles-tbody tr');
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(term) ? '' : 'none';
+            });
+        });
+
+        document.getElementById('tool-search').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const items = document.querySelectorAll('#role-tools-grid .checkbox-item');
+            items.forEach(item => {
+                const text = item.innerText.toLowerCase();
+                item.style.display = text.includes(term) ? 'flex' : 'none';
+            });
+        });

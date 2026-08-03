@@ -12,8 +12,8 @@
     <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-brand">Vistaar Admin</div>
-        <div class="nav-item active" onclick="switchTab('providers')">🏢 Providers</div>
-        <div class="nav-item" onclick="switchTab('roles')">🔐 Roles</div>
+        <div class="nav-item active" onclick="switchTab('providers')">Providers</div>
+        <div class="nav-item" onclick="switchTab('roles')">Roles</div>
     </div>
 
     <!-- Main Content -->
@@ -22,8 +22,11 @@
         <!-- Providers Tab -->
         <div id="tab-providers" class="tab-pane active">
             <div class="header-action">
-                <h1>Providers</h1>
-                <button class="btn" onclick="openProviderModal()">+ Add Provider</button>
+                <h2>API Providers</h2>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <input type="text" id="provider-search" class="form-control" placeholder="Search providers..." style="width: 250px; padding: 8px 12px; border-radius: 4px;">
+                    <button class="btn" onclick="openProviderModal()">+ New Provider</button>
+                </div>
             </div>
             
             <div class="card">
@@ -47,8 +50,11 @@
         <!-- Roles Tab -->
         <div id="tab-roles" class="tab-pane">
             <div class="header-action">
-                <h1>Roles</h1>
-                <button class="btn" onclick="openRoleModal()">+ Create Role</button>
+                <h2>Access Roles</h2>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <input type="text" id="role-search" class="form-control" placeholder="Search roles..." style="width: 250px; padding: 8px 12px; border-radius: 4px;">
+                    <button class="btn" onclick="openRoleModal()">+ New Role</button>
+                </div>
             </div>
             
             <div class="card">
@@ -98,7 +104,10 @@
                 <input type="text" id="role-name" class="form-control" placeholder="e.g. weather_only">
             </div>
             <div class="form-group">
-                <label>Select Tools</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <label style="margin: 0;">Select Tools</label>
+                    <input type="text" id="tool-search" class="form-control" placeholder="Search tools..." style="width: 250px; padding: 6px 10px; font-size: 0.8rem; border-radius: 4px;">
+                </div>
                 <div class="checkbox-grid" id="role-tools-grid">
                     <!-- Populated by JS -->
                 </div>
