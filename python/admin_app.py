@@ -13,6 +13,7 @@ from vistaar_mcp.authz.enforcer import get_enforcer
 from server import ALL_TOOLS
 
 app = FastAPI(title="Vistaar MCP Admin Dashboard")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 security = HTTPBasic()
 
 # Setup Admin Credentials from Env
